@@ -23,23 +23,16 @@ jobs:
         run: |
           cd extracted
           SUBDIR=$(find . -maxdepth 2 -name "platformio.ini" -exec dirname {} \; | head -n 1)
-          if [ -n "$SUBDIR" ]; then
-            cd "$SUBDIR"
-            ENV_NAME=$(grep -E '^\[env:.*devkit.*\]' platformio.ini | head -n 1 | sed 's/\[env://;s/\]//')
-            if [ -n "$ENV_NAME" ]; then
-              echo "Building environment: $ENV_NAME"
-              pio run -e "$ENV_NAME"
-            else
-              pio run
-            fi
-          fi
+          cd "$SUBDIR"
+          pio run -e CYD-2432S028
       - name: Collect Bin Files
         run: |
           mkdir -p output_bins
-          find extracted -path "*/.pio/build/*" -name "*.bin" -exec cp {} output_bins/ \;
+          find extracted -path "*/.pio/build/CYD-2432S028/*" -name "*.bin" -exec cp {} output_bins/ \;
       - name: Upload Bin Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: esp32-devkit-v1-bin
+          name: esp32-bruce-bin
           path: output_bins/*.bin
+
 
