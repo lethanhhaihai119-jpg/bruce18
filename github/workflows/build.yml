@@ -1,0 +1,42 @@
+name: Build ESP32 Bin
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip code
+        run: unzip -o code.zip -d extracted
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install PlatformIO
+        run: pip install platformio
+      - name: Patch and Build Firmware
+        run: |
+          cd extracted/Bruce-main
+          sed -i 's/ESP-PN532Killer.git#^0.0.4/ESP-PN532Killer.git/g' platformio.ini
+          sed -i 's/ESP-PN532Killer#^0.0.4/ESP-PN532Killer/g' platformio.ini
+          ENV_NAME=$(grep -E '^\[env:.*(esp32-devkit|esp32-generic|esp32doit|esp32_)' platformio.ini | head -n 1 | sed 's/\[env://;s/\]//')
+          if [ -z "$ENV_NAME" ]; then
+            ENV_NAME=$(grep -E '^\[env:' platformio.ini | grep -vE 's3|c3|s2|m5|lilygo|cardputer' | head -n 1 | sed 's/\[env://;s/\]//')
+          fi
+          echo "Building for environment: $ENV_NAME"
+          if [ -n "$ENV_NAME" ]; then
+            pio run -e "$ENV_NAME"
+          else
+            pio run
+          fi
+      - name: Collect Bin Files
+        run: |
+          mkdir -p output_bins
+          find extracted -name "*.bin" -exec cp {} output_bins/ \;
+      - name: Upload Bin Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-devkit-v1-bin
+          path: output_bins/*.bin
