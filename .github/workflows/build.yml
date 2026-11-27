@@ -24,15 +24,17 @@ jobs:
           cd extracted
           SUBDIR=$(find . -maxdepth 2 -name "platformio.ini" -exec dirname {} \; | head -n 1)
           cd "$SUBDIR"
-          pio run -e CYD-2432S028
+          pio pkg install -e Marauder-Mini -l "bblanchon/ArduinoJson@^7.0.0"
+          pio run -e Marauder-Mini
       - name: Collect Bin Files
         run: |
           mkdir -p output_bins
-          find extracted -path "*/.pio/build/CYD-2432S028/*" -name "*.bin" -exec cp {} output_bins/ \;
+          find extracted -path "*/.pio/build/Marauder-Mini/*" -name "*.bin" -exec cp {} output_bins/ \;
       - name: Upload Bin Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: esp32-bruce-bin
+          name: esp32-bruce-1.8inch-bin
           path: output_bins/*.bin
+          
 
 
